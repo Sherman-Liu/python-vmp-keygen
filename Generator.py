@@ -31,29 +31,31 @@ import secrets
 
 class Generator:
     def __init__(self, data: str):
-        doc = lxml.etree.fromstring(base64.b64decode(data).decode('utf-8'))
-        root = doc.xpath('/vmp-lm-product[1]')
-        if not root:
+        root = lxml.etree.fromstring(base64.b64decode(data).decode('utf-8'))
+        if root is None or root.tag != 'vmp-lm-product':
             raise ValueError('not a product information string')
-        product = root[0].xpath('@product[1]')
-        if not product:
+        product = root.get('product')
+        if product is None:
             raise ValueError('information about product is missed')
-        self.__product_code = base64.b64decode(product[0])
+        self.__product_code = base64.b64decode(product)
         if len(self.__product_code) != 8:
             raise ValueError('product code has incorrect length')
 
-        algorithm = root[0].xpath('@algorithm[1]')
-        if not algorithm:
+        algorithm = root.get('algorithm')
+        if algorithm is None:
             raise ValueError('missed encryption algorithm')
-        if algorithm[0] != 'RSA':
+        if algorithm != 'RSA':
             raise ValueError('unsupported encryption algorithm')
 
-        try:
-            self.__bits = int(root[0].xpath('@bits[1]')[0])
-            self.__exp = int.from_bytes(base64.b64decode(root[0].xpath('@exp[1]')[0]), 'big')
-            self.__mod = int.from_bytes(base64.b64decode(root[0].xpath('@mod[1]')[0]), 'big')
-        except NameError:
+        bits = root.get('bits')
+        exp = root.get('exp')
+        mod = root.get('mod')
+        if bits is None or exp is None or mod is None:
             raise ValueError('missed data for RSA algorithm')
+
+        self.__bits = int(bits)
+        self.__exp = int.from_bytes(base64.b64decode(exp), 'big')
+        self.__mod = int.from_bytes(base64.b64decode(mod), 'big')
 
     @staticmethod
     def __store_date(s: BytesIO, d: date):
