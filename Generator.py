@@ -21,9 +21,9 @@
 # SOFTWARE.
 
 from datetime import date
-from hashlib import sha1
 from io import BytesIO
 import base64
+import hashlib
 import lxml.etree
 import random
 import secrets
@@ -141,7 +141,7 @@ class Generator:
                 s.write(b'\x09')
                 self.__store_date(s, max_build_date)
 
-            checksum = bytearray(sha1(s.getbuffer()).digest()[:4])
+            checksum = bytearray(hashlib.sha1(s.getbuffer()).digest()[:4])
             checksum.reverse()
 
             # 4 bytes - checksum: the first four bytes of sha-1 hash from the data before that chunk
