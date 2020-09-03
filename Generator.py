@@ -20,13 +20,13 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from datetime import date
-from io import BytesIO
 import base64
 import hashlib
-import lxml.etree
-import random
 import secrets
+from datetime import date
+from io import BytesIO
+
+import lxml.etree
 
 
 class Generator:
@@ -162,7 +162,7 @@ class Generator:
 
         padding_bytes = min_padding
         if max_padding > min_padding:
-            padding_bytes += random.randint(0, max_padding - min_padding)
+            padding_bytes += secrets.randbelow(max_padding - min_padding)
 
         with BytesIO() as s:
             s.write(b'\x00')
