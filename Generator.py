@@ -23,6 +23,7 @@
 import base64
 import hashlib
 import secrets
+import sys
 from datetime import date
 from io import BytesIO
 
@@ -48,21 +49,23 @@ class Generator:
             raise ValueError('unsupported encryption algorithm')
 
         bits = root.get('bits')
-        exp = root.get('exp')
-        mod = root.get('mod')
-        if bits is None or exp is None or mod is None:
-            raise ValueError('missed data for RSA algorithm')
-
+        if bits is None:
+            raise ValueError('missed bits for RSA algorithm')
         self.__bits = int(bits)
+
+        exp = root.get('exp')
+        if exp is None:
+            raise ValueError('missed exp for RSA algorithm')
         self.__exp = int.from_bytes(base64.b64decode(exp), 'big')
+
+        mod = root.get('mod')
+        if mod is None:
+            raise ValueError('missed mod for RSA algorithm')
         self.__mod = int.from_bytes(base64.b64decode(mod), 'big')
 
     @staticmethod
-    def __store_date(s: BytesIO, d: date):
-        s.write(bytes([d.day]))
-        s.write(bytes([d.month]))
-        s.write(bytes([d.year % 256]))
-        s.write(bytes([int(d.year / 256)]))
+    def __make_date(d: date) -> bytes:
+        return int((d.year << 16) | (d.month << 8) | d.day).to_bytes(4, sys.byteorder)
 
     def __build_serial_number(self,
                               username: str = None,
@@ -112,9 +115,9 @@ class Generator:
                 s.write(buffer)
 
             if exp_date is not None:
-                # 4 bytes - (year << 16) + (month << 8) + (day)
+                # 4 bytes - (year << 16) | (month << 8) | (day)
                 s.write(b'\x05')
-                self.__store_date(s, exp_date)
+                s.write(self.__make_date(exp_date))
 
             if running_time_limit is not None:
                 # 1 byte - number of minutes
@@ -137,9 +140,9 @@ class Generator:
                 s.write(user_data)
 
             if max_build_date is not None:
-                # 4 bytes - (year << 16) + (month << 8) + (day)
+                # 4 bytes - (year << 16) | (month << 8) | (day)
                 s.write(b'\x09')
-                self.__store_date(s, max_build_date)
+                s.write(self.__make_date(max_build_date))
 
             checksum = bytearray(hashlib.sha1(s.getbuffer()).digest()[:4])
             checksum.reverse()
