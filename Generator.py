@@ -176,8 +176,7 @@ class Generator:
             return s.getvalue()
 
     def __encrypt(self, b: bytes) -> bytes:
-        value = int.from_bytes(b, 'big')
-        return pow(value, self.__exp, self.__mod).to_bytes(len(b), 'big')
+        return pow(int.from_bytes(b, 'big'), self.__exp, self.__mod).to_bytes(len(b), 'big')
 
     def generate(self,
                  username: str = None,
