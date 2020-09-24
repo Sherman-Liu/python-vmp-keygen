@@ -170,7 +170,8 @@ class Generator:
         with BytesIO() as s:
             s.write(b'\x00')
             s.write(b'\x02')
-            s.write(secrets.token_bytes(padding_bytes))
+            for _ in range(padding_bytes - 1):
+                s.write(bytes([secrets.choice(range(1, 0xff))]))
             s.write(b'\x00')
             s.write(bs)
 
@@ -189,6 +190,7 @@ class Generator:
                  running_time_limit: int = None,
                  user_data: bytes = None,
                  max_build_date: date = None) -> str:
+        print(username, email, hardware_id, exp_date)
         return base64.encodebytes(
             self.__encrypt(
                 self.__add_padding(
