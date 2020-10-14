@@ -190,7 +190,6 @@ class Generator:
                  running_time_limit: int = None,
                  user_data: bytes = None,
                  max_build_date: date = None) -> str:
-        print(username, email, hardware_id, exp_date)
         return base64.encodebytes(
             self.__encrypt(
                 self.__add_padding(
